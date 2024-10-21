@@ -1,0 +1,26 @@
+# Next.js output
+/.next/
+/out/
+
+# Build Outputs
+/build
+
+# Testing
+/coverage
+
+# Yarn-specific
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/versions
+
+# Typescript
+*.tsbuildinfo
+next-env.d.ts
+
+# Vercel
+.vercel/
+
+# Misc
+*.pem
