@@ -1,0 +1,157 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           Int           @id @default(autoincrement())
+  name         String
+  email        String        @unique
+  password     String
+  role         Role          @default(USER)
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+
+  rentals      Rental[]
+  cart         Cart?
+  reservations  Reservation[]
+
+  @@map("users")
+}
+
+model Bike {
+  id           Int           @id @default(autoincrement())
+  model        String
+  location     String
+  type         BikeType
+  condition    BikeCondition
+  pricePerHour Float
+  stock        Int           @default(0)
+  isAvailable  Boolean       @default(true)
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+
+  rentals      Rental[]
+  cartItems    CartItem[]
+  reservations  Reservation[]
+
+  @@map("bikes")
+}
+
+model Cart {
+  id        Int         @id @default(autoincrement())
+  userId    Int         @unique
+  user      User        @relation(fields: [userId], references: [id])
+  items     CartItem[]
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
+
+  @@map("carts")
+}
+
+model CartItem {
+  id       Int   @id @default(autoincrement())
+  cartId   Int
+  bikeId   Int
+  quantity Int   @default(1)
+  hours    Int
+  bike     Bike  @relation(fields: [bikeId], references: [id])
+  cart     Cart  @relation(fields: [cartId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("cart_items")
+}
+
+model Rental {
+  id         Int          @id @default(autoincrement())
+  userId     Int
+  bikeId     Int
+  startTime  DateTime
+  endTime    DateTime?
+  totalPrice Float        @default(0.0)
+  status     RentalStatus @default(ONGOING)
+
+  user User @relation(fields: [userId], references: [id])
+  bike Bike @relation(fields: [bikeId], references: [id])
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  payment   Payment?
+
+  @@map("rentals")
+}
+
+model Reservation {
+  id        Int               @id @default(autoincrement())
+  userId    Int
+  bikeId    Int
+  startTime DateTime
+  endTime   DateTime
+  status    ReservationStatus @default(PENDING)
+
+  user User @relation(fields: [userId], references: [id])
+  bike Bike @relation(fields: [bikeId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("reservations")
+}
+
+model Payment {
+  id              Int           @id @default(autoincrement())
+  rentalId        Int           @unique
+  amount          Float
+  stripeSessionId String
+  paymentDate     DateTime      @default(now())
+  status          PaymentStatus @default(PENDING)
+
+  rental Rental @relation(fields: [rentalId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("payments")
+}
+
+enum Role {
+  USER
+  ADMIN
+}
+
+enum BikeType {
+  URBAN
+  MOUNTAIN
+  ELECTRIC
+  ROAD
+}
+
+enum BikeCondition {
+  NEW
+  SEMINEW
+  USED
+}
+
+enum RentalStatus {
+  ONGOING
+  COMPLETED
+  CANCELLED
+}
+
+enum PaymentStatus {
+  PENDING
+  COMPLETED
+  FAILED
+}
+
+enum ReservationStatus {
+  PENDING
+  CONFIRMED
+  CANCELLED
+}
