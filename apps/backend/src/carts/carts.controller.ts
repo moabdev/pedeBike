@@ -1,8 +1,10 @@
 import { Controller, Get, Post, Body, Param, Delete } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { CartsService } from './carts.service';
-import { CartDto } from './dto/cart.dto';
 import { CreateCartDto } from './dto/create-cart.dto';
+import { CartDto } from './dto/cart.dto';
+
+
 
 @ApiTags('carts')
 @Controller('carts')
@@ -14,14 +16,16 @@ export class CartsController {
   @ApiResponse({ status: 201, description: 'Cart created successfully.', type: CartDto })
   @ApiResponse({ status: 400, description: 'Invalid request.' })
   async create(@Body() createCartDto: CreateCartDto): Promise<CartDto> {
-    return this.cartsService.create(createCartDto);
+    const cart = await this.cartsService.create(createCartDto);
+    return cart;
   }
 
   @Get()
   @ApiOperation({ summary: 'Get all carts' })
   @ApiResponse({ status: 200, description: 'List of carts returned.', type: [CartDto] })
   async findAll(): Promise<CartDto[]> {
-    return this.cartsService.findAll();
+    const carts = await this.cartsService.findAll();
+    return carts;
   }
 
   @Get(':id')
@@ -29,7 +33,8 @@ export class CartsController {
   @ApiResponse({ status: 200, description: 'Cart found.', type: CartDto })
   @ApiResponse({ status: 404, description: 'Cart not found.' })
   async findOne(@Param('id') id: string): Promise<CartDto> {
-    return this.cartsService.findOne(Number(id));
+    const cart = await this.cartsService.findOne(Number(id));
+    return cart;
   }
 
   @Delete(':id')
@@ -37,6 +42,7 @@ export class CartsController {
   @ApiResponse({ status: 200, description: 'Cart removed successfully.', type: CartDto })
   @ApiResponse({ status: 404, description: 'Cart not found.' })
   async remove(@Param('id') id: string): Promise<CartDto> {
-    return this.cartsService.remove(Number(id));
+    const cart = await this.cartsService.remove(Number(id));
+    return cart;
   }
 }

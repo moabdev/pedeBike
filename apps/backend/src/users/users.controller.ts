@@ -16,7 +16,7 @@ export class UserController {
   @ApiResponse({ status: 400, description: 'Invalid input data.' })
   async create(@Body() createUserDto: CreateUserDto): Promise<UserDto> {
     const user = await this.userService.create(createUserDto);
-    return { ...user, password: undefined }; // Não retornar a senha
+    return { ...user, password: undefined };
   }
 
   @Get()
@@ -24,7 +24,7 @@ export class UserController {
   @ApiResponse({ status: 200, description: 'List of all users.', type: [UserDto] })
   findAll(): Promise<UserDto[]> {
     return this.userService.findAll().then(users => 
-      users.map(user => ({ ...user, password: undefined })) // Não retornar a senha
+      users.map(user => ({ ...user, password: undefined }))
     );
   }
 
@@ -34,7 +34,7 @@ export class UserController {
   @ApiResponse({ status: 404, description: 'User not found.' })
   async findOne(@Param('id') id: number): Promise<UserDto> {
     const user = await this.userService.findOne(id);
-    return { ...user, password: undefined }; // Não retornar a senha
+    return { ...user, password: undefined };
   }
 
   @Put(':id')
@@ -43,7 +43,7 @@ export class UserController {
   @ApiResponse({ status: 404, description: 'User not found.' })
   async update(@Param('id') id: number, @Body() updateUserDto: UpdateUserDto): Promise<UserDto> {
     const user = await this.userService.update(id, updateUserDto);
-    return { ...user, password: undefined }; // Não retornar a senha
+    return { ...user, password: undefined };
   }
 
   @Delete(':id')
@@ -52,6 +52,6 @@ export class UserController {
   @ApiResponse({ status: 404, description: 'User not found.' })
   async remove(@Param('id') id: number): Promise<UserDto> {
     const user = await this.userService.remove(id);
-    return { ...user, password: undefined }; // Não retornar a senha
+    return { ...user, password: undefined };
   }
 }
