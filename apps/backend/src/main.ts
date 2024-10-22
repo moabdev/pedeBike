@@ -6,12 +6,17 @@ import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
-  // Swagger's configuration
+  // Configuração do Swagger
   const config = new DocumentBuilder()
     .setTitle('Bike Rental API')
     .setDescription('API para gerenciamento de aluguel de bicicletas')
     .setVersion('1.0')
-    .addTag('users')  
+    .addTag('users')      
+    .addTag('bikes')      
+    .addTag('carts')      
+    .addTag('cart-items')
+    .addTag('payments')    
+    //.addBearerAuth()     
     .build();
   
   const document = SwaggerModule.createDocument(app, config);
