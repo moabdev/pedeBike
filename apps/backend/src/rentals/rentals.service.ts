@@ -1,40 +1,34 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { Rental } from '@prisma/client';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { CreateRentalDto } from './dto/create-rental.dto';
+import { RentalDto } from './dto/rental.dto'; // Importando o DTO
+import { Rental as PrismaRental } from '@prisma/client';
 
 @Injectable()
 export class RentalsService {
-  constructor(private prisma: PrismaService) {}
+  constructor(private readonly prisma: PrismaService) {}
 
-  async create(data: CreateRentalDto): Promise<Rental> {
-    // Garantir que os campos estão sendo passados corretamente
-    return this.prisma.rental.create({
-      data: {
-        userId: data.userId,
-        bikeId: data.bikeId,
-        startTime: data.startTime,
-        endTime: data.endTime,
-        totalPrice: data.totalPrice || 0.0,
-        status: data.status,
-      },
-    });
+  async create(data: CreateRentalDto): Promise<RentalDto> {
+    const rental = await this.prisma.rental.create({ data });
+    return rental as RentalDto; // Retorne o DTO apropriado
   }
 
-  async findAll(): Promise<Rental[]> {
-    return this.prisma.rental.findMany();
+  async findAll(): Promise<RentalDto[]> {
+    const rentals = await this.prisma.rental.findMany();
+    return rentals as RentalDto[]; // Retorne o array de DTOs
   }
 
-  async findOne(id: number): Promise<Rental> {
+  async findOne(id: number): Promise<RentalDto> {
     const rental = await this.prisma.rental.findUnique({ where: { id } });
     if (!rental) {
       throw new NotFoundException(`Rental with ID ${id} not found`);
     }
-    return rental;
+    return rental as RentalDto; // Retorne o DTO apropriado
   }
 
-  async remove(id: number): Promise<Rental> {
-    await this.findOne(id);
-    return this.prisma.rental.delete({ where: { id } });
+  async remove(id: number): Promise<RentalDto> {
+    const rental = await this.findOne(id);
+    await this.prisma.rental.delete({ where: { id } });
+    return rental;
   }
 }

@@ -1,51 +1,56 @@
-import { Controller, Get, Post, Body, Param, Patch, Delete } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger'; // Importando os decorators do Swagger
+import { Controller, Get, Post, Body, Param, Delete, Put } from '@nestjs/common';
+import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { BikesService } from './bikes.service';
 import { CreateBikeDto } from './dto/create-bike.dto';
-import { UpdateBikeDto } from './dto/update-bike.dto';
-import { Bike } from '@prisma/client'; // Importando o modelo de Bike
+import { BikeDto } from './dto/bike.dto';
+import { Bike } from '@prisma/client';
 
-@ApiTags('bikes') // Agrupando as rotas sob a tag 'bikes' na documentação
+@ApiTags('bikes')
 @Controller('bikes')
 export class BikesController {
   constructor(private readonly bikesService: BikesService) {}
 
   @Post()
-  @ApiOperation({ summary: 'Criar uma nova bicicleta' }) // Descrição da operação
-  @ApiResponse({ status: 201, description: 'Bicicleta criada com sucesso.' }) // Resposta de sucesso
-  @ApiResponse({ status: 400, description: 'Requisição inválida.' }) // Resposta de erro
-  create(@Body() createBikeDto: CreateBikeDto): Promise<Bike> {
-    return this.bikesService.create(createBikeDto);
+  @ApiOperation({ summary: 'Create a new bike' })
+  @ApiResponse({ status: 201, description: 'Bike created successfully.', type: BikeDto })
+  @ApiResponse({ status: 400, description: 'Invalid request.' })
+  async create(@Body() createBikeDto: CreateBikeDto): Promise<BikeDto> {
+    const bike = await this.bikesService.create(createBikeDto);
+    return bike; // Aqui você pode usar um mapeamento para o BikeDto se necessário
   }
 
   @Get()
-  @ApiOperation({ summary: 'Buscar todas as bicicletas' }) // Descrição da operação
-  @ApiResponse({ status: 200, description: 'Lista de bicicletas retornada.' }) // Resposta de sucesso
-  findAll(): Promise<Bike[]> {
-    return this.bikesService.findAll();
+  @ApiOperation({ summary: 'Get all bikes' })
+  @ApiResponse({ status: 200, description: 'List of bikes returned.', type: [BikeDto] })
+  async findAll(): Promise<BikeDto[]> {
+    const bikes = await this.bikesService.findAll();
+    return bikes; // Aqui você pode usar um mapeamento para o BikeDto se necessário
   }
 
   @Get(':id')
-  @ApiOperation({ summary: 'Buscar uma bicicleta pelo ID' }) // Descrição da operação
-  @ApiResponse({ status: 200, description: 'Bicicleta encontrada.' }) // Resposta de sucesso
-  @ApiResponse({ status: 404, description: 'Bicicleta não encontrada.' }) // Resposta de erro
-  findOne(@Param('id') id: string): Promise<Bike> {
-    return this.bikesService.findOne(+id);
+  @ApiOperation({ summary: 'Get a bike by ID' })
+  @ApiResponse({ status: 200, description: 'Bike found.', type: BikeDto })
+  @ApiResponse({ status: 404, description: 'Bike not found.' })
+  async findOne(@Param('id') id: string): Promise<BikeDto> {
+    const bike = await this.bikesService.findOne(+id);
+    return bike; // Aqui você pode usar um mapeamento para o BikeDto se necessário
   }
 
-  @Patch(':id')
-  @ApiOperation({ summary: 'Atualizar uma bicicleta pelo ID' }) // Descrição da operação
-  @ApiResponse({ status: 200, description: 'Bicicleta atualizada com sucesso.' }) // Resposta de sucesso
-  @ApiResponse({ status: 404, description: 'Bicicleta não encontrada.' }) // Resposta de erro
-  update(@Param('id') id: string, @Body() updateBikeDto: UpdateBikeDto): Promise<Bike> {
-    return this.bikesService.update(+id, updateBikeDto);
+  @Put(':id')
+  @ApiOperation({ summary: 'Update a bike by ID' })
+  @ApiResponse({ status: 200, description: 'Bike updated successfully.', type: BikeDto })
+  @ApiResponse({ status: 404, description: 'Bike not found.' })
+  async update(@Param('id') id: string, @Body() updateBikeDto: Partial<CreateBikeDto>): Promise<BikeDto> {
+    const bike = await this.bikesService.update(+id, updateBikeDto);
+    return bike; // Aqui você pode usar um mapeamento para o BikeDto se necessário
   }
 
   @Delete(':id')
-  @ApiOperation({ summary: 'Remover uma bicicleta pelo ID' }) // Descrição da operação
-  @ApiResponse({ status: 200, description: 'Bicicleta removida com sucesso.' }) // Resposta de sucesso
-  @ApiResponse({ status: 404, description: 'Bicicleta não encontrada.' }) // Resposta de erro
-  remove(@Param('id') id: string): Promise<Bike> {
-    return this.bikesService.remove(+id);
+  @ApiOperation({ summary: 'Remove a bike by ID' })
+  @ApiResponse({ status: 200, description: 'Bike removed successfully.', type: BikeDto })
+  @ApiResponse({ status: 404, description: 'Bike not found.' })
+  async remove(@Param('id') id: string): Promise<BikeDto> {
+    const bike = await this.bikesService.remove(+id);
+    return bike; // Aqui você pode usar um mapeamento para o BikeDto se necessário
   }
 }

@@ -3,6 +3,7 @@ import { ReservationsController } from './reservations.controller';
 import { ReservationsService } from './reservations.service';
 import { CreateReservationDto } from './dto/create-reservation.dto';
 import { Reservation } from '@prisma/client';
+import { ReservationDto } from './dto/reservation.dto'; // Importando o DTO de resposta
 
 describe('ReservationsController', () => {
   let controller: ReservationsController;
@@ -14,7 +15,7 @@ describe('ReservationsController', () => {
     bikeId: 1,
     startTime: new Date(),
     endTime: new Date(),
-    status: 'PENDING',
+    status: 'CONFIRMED', // Altere conforme seu status
     createdAt: new Date(),
     updatedAt: new Date(),
   };
@@ -42,9 +43,9 @@ describe('ReservationsController', () => {
     const createReservationDto: CreateReservationDto = {
       userId: 1,
       bikeId: 1,
-      startTime: new Date().toString(),
-      endTime: new Date().toString(),
-      status: 'PENDING',
+      startTime: new Date().toISOString(),
+      endTime: new Date().toISOString(),
+      status: 'CONFIRMED', // Altere conforme seu status
     };
     expect(await controller.create(createReservationDto)).toEqual(mockReservation);
   });

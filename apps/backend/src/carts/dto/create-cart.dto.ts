@@ -1,8 +1,8 @@
+import { ApiProperty } from '@nestjs/swagger';
 import { IsInt, IsNotEmpty } from 'class-validator';
-import { ApiProperty } from '@nestjs/swagger'; // Importando ApiProperty para Swagger
 
 export class CreateCartDto {
-  @ApiProperty({ description: 'ID do usuário', example: 1 }) // Descrição para Swagger
+  @ApiProperty({ description: 'User ID associated with the cart', example: 1 })
   @IsInt()
   @IsNotEmpty()
   userId: number;

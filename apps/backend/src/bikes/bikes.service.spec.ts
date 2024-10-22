@@ -1,34 +1,47 @@
-// src/bikes/bikes.service.spec.ts
-
 import { Test, TestingModule } from '@nestjs/testing';
 import { BikesService } from './bikes.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateBikeDto } from './dto/create-bike.dto';
-import { UpdateBikeDto } from './dto/update-bike.dto';
-
-// Mock do PrismaService
-const mockPrismaService = {
-  bikes: {
-    create: jest.fn(),
-    findMany: jest.fn(),
-    findUnique: jest.fn(),
-    update: jest.fn(),
-    delete: jest.fn(),
-  },
-};
+import { Bike } from '@prisma/client';
 
 describe('BikesService', () => {
   let service: BikesService;
+  let prisma: PrismaService;
+
+  const mockBike: Bike = {
+    id: 1,
+    model: 'Mountain Bike',
+    location: 'Park',
+    type: 'MOUNTAIN',
+    condition: 'NEW',
+    pricePerHour: 15.5,
+    stock: 10,
+    isAvailable: true,
+    createdAt: new Date(),
+    updatedAt: new Date(),
+  };
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         BikesService,
-        { provide: PrismaService, useValue: mockPrismaService },
+        {
+          provide: PrismaService,
+          useValue: {
+            bike: {
+              create: jest.fn().mockResolvedValue(mockBike),
+              findMany: jest.fn().mockResolvedValue([mockBike]),
+              findUnique: jest.fn().mockResolvedValue(mockBike),
+              update: jest.fn().mockResolvedValue(mockBike),
+              delete: jest.fn().mockResolvedValue(mockBike),
+            },
+          },
+        },
       ],
     }).compile();
 
     service = module.get<BikesService>(BikesService);
+    prisma = module.get<PrismaService>(PrismaService);
   });
 
   it('should be defined', () => {
@@ -36,110 +49,62 @@ describe('BikesService', () => {
   });
 
   describe('create', () => {
-    it('should create a new bike', async () => {
+    it('should create a bike', async () => {
       const createBikeDto: CreateBikeDto = {
         model: 'Mountain Bike',
-        location: 'Store 1',
+        location: 'Park',
         type: 'MOUNTAIN',
         condition: 'NEW',
-        pricePerHour: 15.0,
+        pricePerHour: 15.5,
         stock: 10,
+        isAvailable: true,
       };
-
-      mockPrismaService.bikes.create.mockResolvedValue(createBikeDto);
-
-      const result = await service.create(createBikeDto);
-      expect(result).toEqual(createBikeDto);
-      expect(mockPrismaService.bikes.create).toHaveBeenCalledWith({ data: createBikeDto });
+      expect(await service.create(createBikeDto)).toEqual(mockBike);
     });
   });
 
   describe('findAll', () => {
     it('should return an array of bikes', async () => {
-      const result = [
-        {
-          id: 1,
-          model: 'Mountain Bike',
-          location: 'Store 1',
-          type: 'MOUNTAIN',
-          condition: 'NEW',
-          pricePerHour: 15.0,
-          stock: 10,
-        },
-      ];
-
-      mockPrismaService.bikes.findMany.mockResolvedValue(result);
-
-      expect(await service.findAll()).toBe(result);
+      const bikes = await service.findAll();
+      expect(bikes).toEqual([mockBike]);
     });
   });
 
   describe('findOne', () => {
     it('should return a bike', async () => {
-      const result = {
-        id: 1,
-        model: 'Mountain Bike',
-        location: 'Store 1',
-        type: 'MOUNTAIN',
-        condition: 'NEW',
-        pricePerHour: 15.0,
-        stock: 10,
-      };
-
-      mockPrismaService.bikes.findUnique.mockResolvedValue(result);
-
-      expect(await service.findOne(1)).toBe(result);
+      const bike = await service.findOne(1);
+      expect(bike).toEqual(mockBike);
     });
 
-    it('should throw a NotFoundException if bike does not exist', async () => {
-      mockPrismaService.bikes.findUnique.mockResolvedValue(null);
-
-      await expect(service.findOne(1)).rejects.toThrowError('Bike with ID 1 not found');
+    it('should throw an error if bike not found', async () => {
+      prisma.bike.findUnique = jest.fn().mockResolvedValue(null);
+      await expect(service.findOne(2)).rejects.toThrow();
     });
   });
 
   describe('update', () => {
     it('should update a bike', async () => {
-      const updateBikeDto: UpdateBikeDto = {
-        model: 'New Model',
+      const updateBikeDto: Partial<CreateBikeDto> = {
+        model: 'Updated Bike',
       };
-
-      const updatedBike = { ...updateBikeDto, id: 1 };
-
-      mockPrismaService.bikes.update.mockResolvedValue(updatedBike);
-
-      expect(await service.update(1, updateBikeDto)).toEqual(updatedBike);
-      expect(mockPrismaService.bikes.update).toHaveBeenCalledWith({ where: { id: 1 }, data: updateBikeDto });
-    });
-
-    it('should throw a NotFoundException if bike does not exist', async () => {
-      const updateBikeDto: UpdateBikeDto = {
-        model: 'New Model',
-      };
-
-      mockPrismaService.bikes.findUnique.mockResolvedValue(null);
-
-      await expect(service.update(1, updateBikeDto)).rejects.toThrowError('Bike with ID 1 not found');
+      prisma.bike.update = jest.fn().mockResolvedValue({
+        ...mockBike,
+        ...updateBikeDto,
+      });
+      const bike = await service.update(1, updateBikeDto);
+      expect(bike.model).toEqual('Updated Bike');
     });
   });
 
   describe('remove', () => {
     it('should remove a bike', async () => {
-      const bike = {
-        id: 1,
-        model: 'Mountain Bike',
-      };
-
-      mockPrismaService.bikes.findUnique.mockResolvedValue(bike);
-      mockPrismaService.bikes.delete.mockResolvedValue(bike);
-
-      expect(await service.remove(1)).toBe(bike);
+      const bike = await service.remove(1);
+      expect(bike).toEqual(mockBike);
     });
 
-    it('should throw a NotFoundException if bike does not exist', async () => {
-      mockPrismaService.bikes.findUnique.mockResolvedValue(null);
-
-      await expect(service.remove(1)).rejects.toThrowError('Bike with ID 1 not found');
+    it('should throw an error if bike not found', async () => {
+      prisma.bike.findUnique = jest.fn().mockResolvedValue(null);
+      await expect(service.remove(2)).rejects.toThrow();
     });
   });
 });

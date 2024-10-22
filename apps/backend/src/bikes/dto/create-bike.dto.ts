@@ -1,33 +1,56 @@
-import { IsEnum, IsNotEmpty, IsNumber, IsString } from 'class-validator';
-import { ApiProperty } from '@nestjs/swagger'; // Importando o decorator do Swagger
-import { BikeType, BikeCondition } from '@prisma/client';
+import { ApiProperty } from '@nestjs/swagger';
+import { BikeCondition, BikeType } from '@prisma/client';
+import { IsNotEmpty, IsString, IsEnum, IsNumber, IsBoolean } from 'class-validator';
 
 export class CreateBikeDto {
-  @ApiProperty({ description: 'Modelo da bicicleta' }) // Decorador para a propriedade 'model'
-  @IsNotEmpty()
+  @ApiProperty({
+    description: 'Model name of the bike, must not be empty.',
+    example: 'Mountain Bike 2023',
+  })
   @IsString()
+  @IsNotEmpty()
   model: string;
 
-  @ApiProperty({ description: 'Localização da bicicleta' }) // Decorador para a propriedade 'location'
-  @IsNotEmpty()
+  @ApiProperty({
+    description: 'Location where the bike is available, must not be empty.',
+    example: 'Downtown Rental Shop',
+  })
   @IsString()
+  @IsNotEmpty()
   location: string;
 
-  @ApiProperty({ enum: BikeType, description: 'Tipo da bicicleta' }) // Decorador para a propriedade 'type'
+  @ApiProperty({
+    enum: BikeType,
+    description: 'Type of the bike, e.g., ROAD, MOUNTAIN, URBAN, or ELECTRIC.',
+  })
   @IsEnum(BikeType)
   type: BikeType;
 
-  @ApiProperty({ enum: BikeCondition, description: 'Condição da bicicleta' }) // Decorador para a propriedade 'condition'
+  @ApiProperty({
+    enum: BikeCondition,
+    description: 'Condition of the bike, can be NEW, SEMINEW, or USED.',
+  })
   @IsEnum(BikeCondition)
   condition: BikeCondition;
 
-  @ApiProperty({ description: 'Preço por hora da bicicleta' }) // Decorador para a propriedade 'pricePerHour'
-  @IsNotEmpty()
+  @ApiProperty({
+    description: 'Rental price per hour for the bike.',
+    example: 15.99,
+  })
   @IsNumber()
   pricePerHour: number;
 
-  @ApiProperty({ description: 'Quantidade de bicicletas em estoque' }) // Decorador para a propriedade 'stock'
-  @IsNotEmpty()
+  @ApiProperty({
+    description: 'Number of this bike model available for rent.',
+    example: 10,
+  })
   @IsNumber()
   stock: number;
+
+  @ApiProperty({
+    description: 'Indicates if the bike is currently available for rental.',
+    example: true,
+  })
+  @IsBoolean()
+  isAvailable: boolean;
 }

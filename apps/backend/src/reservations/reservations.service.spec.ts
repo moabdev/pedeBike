@@ -15,7 +15,7 @@ describe('ReservationsService', () => {
     bikeId: 1,
     startTime: new Date(),
     endTime: new Date(),
-    status: 'PENDING',
+    status: 'CONFIRMED', // Altere conforme seu status
     createdAt: new Date(),
     updatedAt: new Date(),
   };
@@ -45,9 +45,9 @@ describe('ReservationsService', () => {
     const createReservationDto: CreateReservationDto = {
       userId: 1,
       bikeId: 1,
-      startTime: new Date().toString(),
-      endTime: new Date().toString(),
-      status: 'PENDING',
+      startTime: new Date().toISOString(),
+      endTime: new Date().toISOString(),
+      status: 'PENDING', // Altere conforme seu status
     };
     expect(await service.create(createReservationDto)).toEqual(mockReservation);
   });

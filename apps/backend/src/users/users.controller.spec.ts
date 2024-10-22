@@ -1,77 +1,102 @@
 import { Test, TestingModule } from '@nestjs/testing';
+import { UserController } from './users.controller';
 import { UserService } from './users.service';
-import { PrismaService } from '../prisma/prisma.service';
-import { NotFoundException } from '@nestjs/common';
+import { CreateUserDto } from './dto/create-user.dto';
+import { UpdateUserDto } from './dto/update-user.dto';
+import { UserDto } from './dto/user.dto';
 import { User } from '@prisma/client';
 
-describe('UserService', () => {
+describe('UserController', () => {
+  let controller: UserController;
   let service: UserService;
-  let prisma: PrismaService;
 
   const mockUser: User = {
     id: 1,
-    name: 'Test User',
-    email: 'test@example.com',
-    password: 'password',
+    name: 'John Doe',
     role: 'USER',
+    email: 'john@example.com',
+    password: 'hashed_password', // não deve ser exposto
     createdAt: new Date(),
     updatedAt: new Date(),
   };
 
-  const mockPrismaService = {
-    user: {
-      create: jest.fn().mockResolvedValue(mockUser),
-      findMany: jest.fn().mockResolvedValue([mockUser]),
-      findUnique: jest.fn().mockResolvedValue(mockUser),
-      update: jest.fn().mockResolvedValue(mockUser),
-      delete: jest.fn().mockResolvedValue(mockUser),
-    },
+  const mockUserService = {
+    create: jest.fn().mockResolvedValue(mockUser),
+    findAll: jest.fn().mockResolvedValue([mockUser]),
+    findOne: jest.fn().mockResolvedValue(mockUser),
+    update: jest.fn().mockResolvedValue(mockUser),
+    remove: jest.fn().mockResolvedValue(mockUser),
   };
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
+      controllers: [UserController],
       providers: [
-        UserService,
-        { provide: PrismaService, useValue: mockPrismaService },
+        { provide: UserService, useValue: mockUserService },
       ],
     }).compile();
 
+    controller = module.get<UserController>(UserController);
     service = module.get<UserService>(UserService);
-    prisma = module.get<PrismaService>(PrismaService);
   });
 
   it('should create a user', async () => {
-    const result = await service.create({
-      name: 'Test User',
-      email: 'test@example.com',
-      password: 'password',
+    const createUserDto: CreateUserDto = {
+      name: 'John Doe',
+      email: 'john@example.com',
+      password: 'password123',
+    };
+    const result: UserDto = await controller.create(createUserDto);
+    expect(result).toEqual({
+      id: mockUser.id,
+      name: mockUser.name,
+      email: mockUser.email,
     });
-    expect(result).toEqual(mockUser);
-    expect(prisma.user.create).toHaveBeenCalledWith({
-      data: {
-        name: 'Test User',
-        email: 'test@example.com',
-        password: 'password',
-      },
-    });
+    expect(service.create).toHaveBeenCalledWith(createUserDto);
   });
 
   it('should return all users', async () => {
-    const users = await service.findAll();
-    expect(users).toEqual([mockUser]);
-    expect(prisma.user.findMany).toHaveBeenCalled();
+    const result: UserDto[] = await controller.findAll();
+    expect(result).toEqual([{
+      id: mockUser.id,
+      name: mockUser.name,
+      email: mockUser.email,
+    }]);
+    expect(service.findAll).toHaveBeenCalled();
   });
 
   it('should return a single user', async () => {
-    const user = await service.findOne(1);
-    expect(user).toEqual(mockUser);
-    expect(prisma.user.findUnique).toHaveBeenCalledWith({ where: { id: 1 } });
+    const result: UserDto = await controller.findOne(1);
+    expect(result).toEqual({
+      id: mockUser.id,
+      name: mockUser.name,
+      email: mockUser.email,
+    });
+    expect(service.findOne).toHaveBeenCalledWith(1);
   });
 
-  it('should throw NotFoundException for non-existent user', async () => {
-    jest.spyOn(prisma.user, 'findUnique').mockResolvedValueOnce(null);
-    await expect(service.findOne(2)).rejects.toThrow(NotFoundException);
+  it('should update a user', async () => {
+    const updateUserDto: UpdateUserDto = {
+      name: 'Jane Doe',
+      email: 'jane@example.com',
+      // Adicione outros campos conforme necessário
+    };
+    const result: UserDto = await controller.update(1, updateUserDto);
+    expect(result).toEqual({
+      id: mockUser.id,
+      name: mockUser.name,
+      email: mockUser.email,
+    });
+    expect(service.update).toHaveBeenCalledWith(1, updateUserDto);
   });
 
-  // Continue com os outros testes (update, remove, etc.)
+  it('should remove a user', async () => {
+    const result: UserDto = await controller.remove(1);
+    expect(result).toEqual({
+      id: mockUser.id,
+      name: mockUser.name,
+      email: mockUser.email,
+    });
+    expect(service.remove).toHaveBeenCalledWith(1);
+  });
 });
