@@ -1,9 +1,8 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { RentalsService } from './rentals.service';
-import { PrismaService } from 'src/prisma/prisma.service';
+import { PrismaService } from '../prisma/prisma.service';
 import { NotFoundException } from '@nestjs/common';
 import { CreateRentalDto } from './dto/create-rental.dto';
-import { RentalDto } from './dto/rental.dto'; // Importando o DTO
 import { Rental } from '@prisma/client';
 
 describe('RentalsService', () => {

@@ -3,7 +3,6 @@ import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { BikesService } from './bikes.service';
 import { CreateBikeDto } from './dto/create-bike.dto';
 import { BikeDto } from './dto/bike.dto';
-import { Bike } from '@prisma/client';
 
 @ApiTags('bikes')
 @Controller('bikes')

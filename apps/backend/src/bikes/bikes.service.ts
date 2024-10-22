@@ -46,10 +46,11 @@ export class BikesService {
   }
 
   async remove(id: number): Promise<BikeDto> {
-    const bike = await this.prisma.bike.delete({
-      where: { id },
-    });
-
-    return bike;
+    const bike = await this.prisma.bike.findUnique({ where: { id } });
+    if (!bike) {
+      throw new NotFoundException(`Bike with ID ${id} not found`);
+    }
+    return this.prisma.bike.delete({ where: { id } });
   }
+  
 }

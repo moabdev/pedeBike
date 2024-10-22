@@ -1,8 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { PrismaService } from 'src/prisma/prisma.service';
+import { PrismaService } from '../prisma/prisma.service';
 import { CreateRentalDto } from './dto/create-rental.dto';
-import { RentalDto } from './dto/rental.dto'; // Importando o DTO
-import { Rental as PrismaRental } from '@prisma/client';
+import { RentalDto } from './dto/rental.dto';
 
 @Injectable()
 export class RentalsService {

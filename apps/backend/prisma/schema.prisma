@@ -8,17 +8,18 @@ datasource db {
 }
 
 model User {
-  id           Int           @id @default(autoincrement())
-  name         String
-  email        String        @unique
-  password     String
-  role         Role          @default(USER)
-  createdAt    DateTime      @default(now())
-  updatedAt    DateTime      @updatedAt
+  id       Int    @id @default(autoincrement())
+  name     String
+  email    String @unique
+  password String
+  role     Role   @default(USER)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   rentals      Rental[]
   cart         Cart?
-  reservations  Reservation[]
+  reservations Reservation[]
 
   @@map("users")
 }
@@ -37,30 +38,30 @@ model Bike {
 
   rentals      Rental[]
   cartItems    CartItem[]
-  reservations  Reservation[]
+  reservations Reservation[]
 
   @@map("bikes")
 }
 
 model Cart {
-  id        Int         @id @default(autoincrement())
-  userId    Int         @unique
-  user      User        @relation(fields: [userId], references: [id])
+  id        Int        @id @default(autoincrement())
+  userId    Int        @unique
+  user      User       @relation(fields: [userId], references: [id])
   items     CartItem[]
-  createdAt DateTime    @default(now())
-  updatedAt DateTime    @updatedAt
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
 
   @@map("carts")
 }
 
 model CartItem {
-  id       Int   @id @default(autoincrement())
+  id       Int  @id @default(autoincrement())
   cartId   Int
   bikeId   Int
-  quantity Int   @default(1)
+  quantity Int  @default(1)
   hours    Int
-  bike     Bike  @relation(fields: [bikeId], references: [id])
-  cart     Cart  @relation(fields: [cartId], references: [id])
+  bike     Bike @relation(fields: [bikeId], references: [id])
+  cart     Cart @relation(fields: [cartId], references: [id])
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -80,8 +81,8 @@ model Rental {
   user User @relation(fields: [userId], references: [id])
   bike Bike @relation(fields: [bikeId], references: [id])
 
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
   payment   Payment?
 
   @@map("rentals")

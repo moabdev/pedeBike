@@ -8,15 +8,16 @@ describe('UserService', () => {
   let service: UserService;
   let prisma: PrismaService;
 
-  const mockUser: UserModel = {
+  const mockUser = {
     id: 1,
-    name: 'Test User',
-    email: 'test@example.com',
+    name: 'John Doe',
+    email: 'john@example.com',
     password: 'hashedpassword',
     role: 'USER',
     createdAt: new Date(),
     updatedAt: new Date(),
   };
+  
 
   const mockPrismaService = {
     user: {

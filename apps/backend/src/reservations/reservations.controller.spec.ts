@@ -3,7 +3,7 @@ import { ReservationsController } from './reservations.controller';
 import { ReservationsService } from './reservations.service';
 import { CreateReservationDto } from './dto/create-reservation.dto';
 import { Reservation } from '@prisma/client';
-import { ReservationDto } from './dto/reservation.dto'; // Importando o DTO de resposta
+
 
 describe('ReservationsController', () => {
   let controller: ReservationsController;
