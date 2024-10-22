@@ -1,31 +1,33 @@
-import { IsEnum, IsNotEmpty, IsNumber, IsString } from 'class-validator';
+import { IsInt, IsDate, IsEnum, IsNotEmpty } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 import { ReservationStatus } from '@prisma/client';
 
 export class CreateReservationDto {
-  @ApiProperty()
+  @ApiProperty({ description: 'ID of the user making the reservation' })
+  @IsInt()
   @IsNotEmpty()
-  @IsNumber()
   userId: number;
 
-  @ApiProperty()
+  @ApiProperty({ description: 'ID of the bike being reserved' })
+  @IsInt()
   @IsNotEmpty()
-  @IsNumber()
   bikeId: number;
 
-  @ApiProperty()
+  @ApiProperty({ description: 'Start time of the reservation' })
+  @IsDate()
   @IsNotEmpty()
-  @IsString()
-  startTime: string;
+  startTime: Date;
 
-  @ApiProperty()
+  @ApiProperty({ description: 'End time of the reservation' })
+  @IsDate()
   @IsNotEmpty()
-  @IsString()
-  endTime: string;
+  endTime: Date;
 
-  @ApiProperty()
-  @IsNotEmpty()
+  @ApiProperty({
+    description: 'Status of the reservation',
+    enum: ReservationStatus,
+    default: ReservationStatus.PENDING,
+  })
   @IsEnum(ReservationStatus)
-  status: ReservationStatus;
-
+  status?: ReservationStatus = ReservationStatus.PENDING;
 }

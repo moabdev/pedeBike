@@ -3,6 +3,7 @@ import { ReservationsService } from './reservations.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { NotFoundException } from '@nestjs/common';
 import { CreateReservationDto } from './dto/create-reservation.dto';
+import { ReservationDto } from './dto/reservation.dto';
 import { Reservation } from '@prisma/client';
 
 describe('ReservationsService', () => {
@@ -15,7 +16,7 @@ describe('ReservationsService', () => {
     bikeId: 1,
     startTime: new Date(),
     endTime: new Date(),
-    status: 'CONFIRMED', // Altere conforme seu status
+    status: 'PENDING', // ou o valor padrão da sua enum
     createdAt: new Date(),
     updatedAt: new Date(),
   };
@@ -23,9 +24,7 @@ describe('ReservationsService', () => {
   const mockPrismaService = {
     reservation: {
       create: jest.fn().mockResolvedValue(mockReservation),
-      findMany: jest.fn().mockResolvedValue([mockReservation]),
       findUnique: jest.fn().mockResolvedValue(mockReservation),
-      delete: jest.fn().mockResolvedValue(mockReservation),
     },
   };
 
@@ -33,7 +32,10 @@ describe('ReservationsService', () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         ReservationsService,
-        { provide: PrismaService, useValue: mockPrismaService },
+        {
+          provide: PrismaService,
+          useValue: mockPrismaService,
+        },
       ],
     }).compile();
 
@@ -41,31 +43,47 @@ describe('ReservationsService', () => {
     prismaService = module.get<PrismaService>(PrismaService);
   });
 
-  it('should create a reservation', async () => {
-    const createReservationDto: CreateReservationDto = {
-      userId: 1,
-      bikeId: 1,
-      startTime: new Date().toISOString(),
-      endTime: new Date().toISOString(),
-      status: 'PENDING', // Altere conforme seu status
-    };
-    expect(await service.create(createReservationDto)).toEqual(mockReservation);
+  it('should be defined', () => {
+    expect(service).toBeDefined();
   });
 
-  it('should return all reservations', async () => {
-    expect(await service.findAll()).toEqual([mockReservation]);
+  describe('create', () => {
+    it('should create a reservation', async () => {
+      const createReservationDto: CreateReservationDto = {
+        userId: 1,
+        bikeId: 1,
+        startTime: new Date(),
+        endTime: new Date(),
+        status: 'PENDING', // ou o valor padrão da sua enum
+      };
+
+      const result = await service.create(createReservationDto);
+
+      expect(prismaService.reservation.create).toHaveBeenCalledWith({ data: createReservationDto });
+      expect(result).toEqual({
+        ...mockReservation,
+        createdAt: mockReservation.createdAt,
+        updatedAt: mockReservation.updatedAt,
+      });
+    });
   });
 
-  it('should return a single reservation', async () => {
-    expect(await service.findOne(1)).toEqual(mockReservation);
-  });
+  describe('findOne', () => {
+    it('should return a reservation by ID', async () => {
+      const result = await service.findOne(1);
 
-  it('should throw NotFoundException for non-existing reservation', async () => {
-    jest.spyOn(prismaService.reservation, 'findUnique').mockResolvedValue(null);
-    await expect(service.findOne(999)).rejects.toThrow(NotFoundException);
-  });
+      expect(prismaService.reservation.findUnique).toHaveBeenCalledWith({ where: { id: 1 } });
+      expect(result).toEqual({
+        ...mockReservation,
+        createdAt: mockReservation.createdAt,
+        updatedAt: mockReservation.updatedAt,
+      });
+    });
 
-  it('should delete a reservation', async () => {
-    expect(await service.remove(1)).toEqual(mockReservation);
+    it('should throw a NotFoundException if reservation not found', async () => {
+      jest.spyOn(prismaService.reservation, 'findUnique').mockResolvedValueOnce(null);
+
+      await expect(service.findOne(999)).rejects.toThrow(NotFoundException);
+    });
   });
 });

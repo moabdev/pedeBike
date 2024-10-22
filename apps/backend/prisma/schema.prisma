@@ -59,7 +59,7 @@ model CartItem {
   cartId   Int
   bikeId   Int
   quantity Int  @default(1)
-  hours    Int
+  hours    Int  @default(1)
   bike     Bike @relation(fields: [bikeId], references: [id])
   cart     Cart @relation(fields: [cartId], references: [id])
 

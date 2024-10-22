@@ -2,23 +2,21 @@ import { IsInt, IsNotEmpty } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 
 export class CreateCartItemDto {
-  @ApiProperty({ description: 'ID of the cart', example: 1 })
   @IsInt()
   @IsNotEmpty()
+  @ApiProperty({ description: 'ID of the cart that the item belongs to.' })
   cartId: number;
 
-  @ApiProperty({ description: 'ID of the bike', example: 1 })
   @IsInt()
   @IsNotEmpty()
+  @ApiProperty({ description: 'ID of the bike associated with the cart item.' })
   bikeId: number;
 
-  @ApiProperty({ description: 'Quantity', example: 2 })
   @IsInt()
-  @IsNotEmpty()
+  @ApiProperty({ description: 'Quantity of the bike in the cart item.', default: 1 })
   quantity: number;
 
-  @ApiProperty({ description: 'Hours', example: 5 })
   @IsInt()
-  @IsNotEmpty()
+  @ApiProperty({ description: 'Number of hours the bike is rented for.', default: 1 })
   hours: number;
 }

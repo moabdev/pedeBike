@@ -1,36 +1,28 @@
-import { IsEnum, IsNotEmpty, IsNumber, IsOptional, IsDate } from 'class-validator';
-import { RentalStatus } from '@prisma/client';
-import { ApiProperty } from '@nestjs/swagger';
+import { IsInt, IsNotEmpty, IsDate, IsOptional, IsEnum } from 'class-validator';
+import { RentalStatus } from '@prisma/client'; // Importando o enum RentalStatus
 
 export class CreateRentalDto {
-
-  @ApiProperty()
+  @IsInt()
   @IsNotEmpty()
-  @IsNumber()
   userId: number;
 
-  @ApiProperty()
+  @IsInt()
   @IsNotEmpty()
-  @IsNumber()
   bikeId: number;
 
-  @ApiProperty()
-  @IsNotEmpty()
   @IsDate()
-  startTime: Date; 
+  @IsNotEmpty()
+  startTime: Date;
 
-  @ApiProperty()
-  @IsOptional() 
   @IsDate()
-  endTime?: Date; 
+  @IsOptional()
+  endTime?: Date;
 
-  @ApiProperty()
-  @IsNotEmpty()
-  @IsNumber()
-  totalPrice: number;
+  @IsInt()
+  @IsOptional()
+  totalPrice?: number;
 
-  @ApiProperty()
-  @IsNotEmpty()
   @IsEnum(RentalStatus)
-  status: RentalStatus;
+  @IsOptional()
+  status?: RentalStatus;
 }

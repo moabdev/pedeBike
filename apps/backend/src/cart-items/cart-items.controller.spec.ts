@@ -1,72 +1,70 @@
 import { Test, TestingModule } from '@nestjs/testing';
+import { CartItemsController } from './cart-items.controller';
 import { CartItemsService } from './cart-items.service';
-import { PrismaService } from '../prisma/prisma.service';
+import { CreateCartItemDto } from './dto/create-cart-item.dto';
+import { CartItemDto } from './dto/cart-item.dto';
 import { NotFoundException } from '@nestjs/common';
 
-describe('CartItemsService', () => {
+describe('CartItemsController', () => {
+  let controller: CartItemsController;
   let service: CartItemsService;
 
-  const mockCartItem = {
+  const mockCartItemDto: CartItemDto = {
     id: 1,
     cartId: 1,
-    bikeId: 1,
-    quantity: 1,
-    hours: 2,
+    bikeId: 101,
+    quantity: 2,
+    hours: 1,
+    createdAt: new Date(),
+    updatedAt: new Date(),
   };
 
-  const mockPrismaService = {
-    cartItems: {
-      create: jest.fn().mockResolvedValue(mockCartItem),
-      findMany: jest.fn().mockResolvedValue([mockCartItem]),
-      findUnique: jest.fn().mockResolvedValue(mockCartItem),
-      delete: jest.fn().mockResolvedValue(mockCartItem),
-    },
+  const mockCartItemsService = {
+    create: jest.fn().mockResolvedValue(mockCartItemDto),
+    findOne: jest.fn().mockResolvedValue(mockCartItemDto),
   };
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
+      controllers: [CartItemsController],
       providers: [
-        CartItemsService,
-        { provide: PrismaService, useValue: mockPrismaService },
+        {
+          provide: CartItemsService,
+          useValue: mockCartItemsService,
+        },
       ],
     }).compile();
 
+    controller = module.get<CartItemsController>(CartItemsController);
     service = module.get<CartItemsService>(CartItemsService);
   });
 
   it('should be defined', () => {
-    expect(service).toBeDefined();
+    expect(controller).toBeDefined();
   });
 
-  it('should create a cart item', async () => {
-    const cartItem = await service.create({ cartId: 1, bikeId: 1, quantity: 1, hours: 2 });
-    expect(cartItem).toEqual(mockCartItem);
+  describe('create', () => {
+    it('should create a new cart item', async () => {
+      const createCartItemDto: CreateCartItemDto = { cartId: 1, bikeId: 101, quantity: 2, hours: 1 };
+      const result = await controller.create(createCartItemDto);
+
+      expect(service.create).toHaveBeenCalledWith(createCartItemDto);
+      expect(result).toEqual(mockCartItemDto);
+    });
   });
 
-  it('should find all cart items', async () => {
-    const cartItems = await service.findAll();
-    expect(cartItems).toEqual([mockCartItem]);
-  });
+  describe('findOne', () => {
+    it('should return a cart item by ID', async () => {
+      const result = await controller.findOne('1');
 
-  it('should find one cart item by ID', async () => {
-    const cartItem = await service.findOne(1);
-    expect(cartItem).toEqual(mockCartItem);
-  });
+      expect(service.findOne).toHaveBeenCalledWith(1);
+      expect(result).toEqual(mockCartItemDto);
+    });
 
-  it('should throw NotFoundException if cart item not found', async () => {
-    const mockPrismaServiceWithNotFound = {
-      cartItems: {
-        findUnique: jest.fn().mockResolvedValue(null),
-      },
-    };
+    it('should throw a NotFoundException if cart item is not found', async () => {
+      jest.spyOn(service, 'findOne').mockRejectedValueOnce(new NotFoundException('Cart item not found'));
 
-    const serviceWithNotFound = new CartItemsService(mockPrismaServiceWithNotFound as any);
-
-    await expect(serviceWithNotFound.findOne(999)).rejects.toThrow(NotFoundException);
-  });
-
-  it('should delete a cart item', async () => {
-    const deletedCartItem = await service.remove(1);
-    expect(deletedCartItem).toEqual(mockCartItem);
+      await expect(controller.findOne('999')).rejects.toThrow(NotFoundException);
+    });
   });
 });

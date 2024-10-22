@@ -1,19 +1,23 @@
+import { IsInt, IsArray } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 import { CartItemDto } from '../../cart-items/dto/cart-item.dto';
 
 export class CartDto {
-  @ApiProperty()
+  @IsInt()
+  @ApiProperty({ description: 'Unique identifier for the cart.' })
   id: number;
 
-  @ApiProperty()
+  @IsInt()
+  @ApiProperty({ description: 'ID of the user associated with the cart.' })
   userId: number;
 
-  @ApiProperty()
+  @IsArray()
+  @ApiProperty({ type: [CartItemDto], description: 'List of items in the cart.' })
+  items: CartItemDto[];
+
+  @ApiProperty({ description: 'Creation date of the cart.' })
   createdAt: Date;
 
-  @ApiProperty()
+  @ApiProperty({ description: 'Last update date of the cart.' })
   updatedAt: Date;
-
-  @ApiProperty({ type: () => [CartItemDto] }) 
-  items: CartItemDto[];
 }

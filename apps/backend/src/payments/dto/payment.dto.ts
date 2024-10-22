@@ -1,28 +1,28 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { PaymentStatus, Payment as PrismaPayment } from '@prisma/client';
+import { PaymentStatus, Rental } from '@prisma/client'; // Ajuste conforme sua estrutura de projeto
 
-export class PaymentDto implements PrismaPayment {
-  @ApiProperty()
+export class PaymentDto {
+  @ApiProperty({ example: 1, description: 'Unique identifier of the payment' })
   id: number;
 
-  @ApiProperty()
+  @ApiProperty({ example: 1, description: 'Rental ID associated with the payment' })
   rentalId: number;
 
-  @ApiProperty()
+  @ApiProperty({ example: 100.0, description: 'Amount paid' })
   amount: number;
 
-  @ApiProperty()
+  @ApiProperty({ example: 'cs_test_a1b2c3d4e5f6g7h8', description: 'Stripe session ID for the payment' })
   stripeSessionId: string;
 
-  @ApiProperty()
+  @ApiProperty({ example: '2024-10-22T12:00:00Z', description: 'Date of the payment' })
   paymentDate: Date;
 
-  @ApiProperty()
+  @ApiProperty({ example: 'PENDING', description: 'Status of the payment' })
   status: PaymentStatus;
 
-  @ApiProperty()
+  @ApiProperty({ description: 'Creation timestamp of the payment' })
   createdAt: Date;
 
-  @ApiProperty()
+  @ApiProperty({ description: 'Last update timestamp of the payment' })
   updatedAt: Date;
 }

@@ -2,29 +2,40 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { CartItem } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateCartItemDto } from './dto/create-cart-item.dto';
+import { CartItemDto } from './dto/cart-item.dto';
 
 @Injectable()
 export class CartItemsService {
-  constructor(private prisma: PrismaService) {}
+  constructor(private readonly prisma: PrismaService) {}
 
-  async create(data: CreateCartItemDto): Promise<CartItem> {
-    return this.prisma.cartItem.create({ data });
+  async create(createCartItemDto: CreateCartItemDto): Promise<CartItemDto> {
+    const cartItem = await this.prisma.cartItem.create({
+      data: createCartItemDto,
+    });
+    return this.mapToDto(cartItem);
   }
 
-  async findAll(): Promise<CartItem[]> {
-    return this.prisma.cartItem.findMany();
-  }
+  async findOne(id: number): Promise<CartItemDto> {
+    const cartItem = await this.prisma.cartItem.findUnique({
+      where: { id },
+    });
 
-  async findOne(id: number): Promise<CartItem> {
-    const cartItem = await this.prisma.cartItem.findUnique({ where: { id } });
     if (!cartItem) {
-      throw new NotFoundException(`CartItem with ID ${id} not found`);
+      throw new NotFoundException(`Cart item with ID ${id} not found`);
     }
-    return cartItem;
+
+    return this.mapToDto(cartItem);
   }
 
-  async remove(id: number): Promise<CartItem> {
-    await this.findOne(id);
-    return this.prisma.cartItem.delete({ where: { id } });
+  private mapToDto(cartItem: CartItem): CartItemDto {
+    return {
+      id: cartItem.id,
+      cartId: cartItem.cartId,
+      bikeId: cartItem.bikeId,
+      quantity: cartItem.quantity,
+      hours: cartItem.hours,
+      createdAt: cartItem.createdAt,
+      updatedAt: cartItem.updatedAt,
+    };
   }
 }

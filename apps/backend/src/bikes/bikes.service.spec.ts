@@ -1,46 +1,50 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { BikesService } from './bikes.service';
+import { BikeService } from './bikes.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateBikeDto } from './dto/create-bike.dto';
-import { Bike } from '@prisma/client';
+import { UpdateBikeDto } from './dto/update-bike.dto';
+import { BikeDto } from './dto/bike.dto';
+import { NotFoundException } from '@nestjs/common';
 
-describe('BikesService', () => {
-  let service: BikesService;
+describe('BikeService', () => {
+  let service: BikeService;
   let prisma: PrismaService;
 
-  const mockBike: Bike = {
+  const mockBike = {
     id: 1,
     model: 'Mountain Bike',
     location: 'Park',
     type: 'MOUNTAIN',
     condition: 'NEW',
-    pricePerHour: 15.5,
-    stock: 10,
+    pricePerHour: 10.0,
+    stock: 5,
     isAvailable: true,
     createdAt: new Date(),
     updatedAt: new Date(),
   };
 
+  const mockPrismaService = {
+    bike: {
+      create: jest.fn().mockResolvedValue(mockBike),
+      findMany: jest.fn().mockResolvedValue([mockBike]),
+      findUnique: jest.fn().mockResolvedValue(mockBike),
+      update: jest.fn().mockResolvedValue(mockBike),
+      delete: jest.fn().mockResolvedValue(mockBike),
+    },
+  };
+
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
-        BikesService,
+        BikeService,
         {
           provide: PrismaService,
-          useValue: {
-            bike: {
-              create: jest.fn().mockResolvedValue(mockBike),
-              findMany: jest.fn().mockResolvedValue([mockBike]),
-              findUnique: jest.fn().mockResolvedValue(mockBike),
-              update: jest.fn().mockResolvedValue(mockBike),
-              delete: jest.fn().mockResolvedValue(mockBike),
-            },
-          },
+          useValue: mockPrismaService,
         },
       ],
     }).compile();
 
-    service = module.get<BikesService>(BikesService);
+    service = module.get<BikeService>(BikeService);
     prisma = module.get<PrismaService>(PrismaService);
   });
 
@@ -49,62 +53,65 @@ describe('BikesService', () => {
   });
 
   describe('create', () => {
-    it('should create a bike', async () => {
+    it('should create a new bike', async () => {
       const createBikeDto: CreateBikeDto = {
         model: 'Mountain Bike',
         location: 'Park',
         type: 'MOUNTAIN',
         condition: 'NEW',
-        pricePerHour: 15.5,
-        stock: 10,
+        pricePerHour: 10.0,
+        stock: 5,
         isAvailable: true,
       };
-      expect(await service.create(createBikeDto)).toEqual(mockBike);
+
+      const result = await service.create(createBikeDto);
+
+      expect(prisma.bike.create).toHaveBeenCalledWith({ data: createBikeDto });
+      expect(result).toEqual(mockBike);
     });
   });
 
   describe('findAll', () => {
     it('should return an array of bikes', async () => {
-      const bikes = await service.findAll();
-      expect(bikes).toEqual([mockBike]);
+      const result = await service.findAll();
+      expect(prisma.bike.findMany).toHaveBeenCalled();
+      expect(result).toEqual([mockBike]);
     });
   });
 
   describe('findOne', () => {
-    it('should return a bike', async () => {
-      const bike = await service.findOne(1);
-      expect(bike).toEqual(mockBike);
+    it('should return a bike by ID', async () => {
+      const result = await service.findOne(1);
+      expect(prisma.bike.findUnique).toHaveBeenCalledWith({ where: { id: 1 } });
+      expect(result).toEqual(mockBike);
     });
 
-    it('should throw an error if bike not found', async () => {
-      prisma.bike.findUnique = jest.fn().mockResolvedValue(null);
-      await expect(service.findOne(2)).rejects.toThrow();
+    it('should throw a NotFoundException if bike is not found', async () => {
+      jest.spyOn(prisma.bike, 'findUnique').mockResolvedValueOnce(null);
+
+      await expect(service.findOne(999)).rejects.toThrow(NotFoundException);
     });
   });
 
   describe('update', () => {
     it('should update a bike', async () => {
-      const updateBikeDto: Partial<CreateBikeDto> = {
-        model: 'Updated Bike',
-      };
-      prisma.bike.update = jest.fn().mockResolvedValue({
-        ...mockBike,
-        ...updateBikeDto,
+      const updateBikeDto: UpdateBikeDto = { pricePerHour: 15.0 };
+
+      const result = await service.update(1, updateBikeDto);
+
+      expect(prisma.bike.update).toHaveBeenCalledWith({
+        where: { id: 1 },
+        data: updateBikeDto,
       });
-      const bike = await service.update(1, updateBikeDto);
-      expect(bike.model).toEqual('Updated Bike');
+      expect(result).toEqual(mockBike);
     });
   });
 
   describe('remove', () => {
-    it('should remove a bike', async () => {
-      const bike = await service.remove(1);
-      expect(bike).toEqual(mockBike);
-    });
-
-    it('should throw an error if bike not found', async () => {
-      prisma.bike.findUnique = jest.fn().mockResolvedValue(null);
-      await expect(service.remove(2)).rejects.toThrow();
+    it('should remove a bike by ID', async () => {
+      const result = await service.remove(1);
+      expect(prisma.bike.delete).toHaveBeenCalledWith({ where: { id: 1 } });
+      expect(result).toEqual(mockBike);
     });
   });
 });

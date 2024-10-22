@@ -1,7 +1,12 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
+import { Cart, CartItem } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
-import { CartDto } from './dto/cart.dto';
 import { CreateCartDto } from './dto/create-cart.dto';
+import { CartDto } from './dto/cart.dto';
+
+interface CartWithItems extends Cart {
+  items: CartItem[];
+}
 
 @Injectable()
 export class CartsService {
@@ -12,37 +17,15 @@ export class CartsService {
       data: {
         userId: createCartDto.userId,
       },
-      include: {
-        items: {
-          include: { bike: true },
-        },
-      },
-    });
-
+    }) as CartWithItems;
     return this.mapToDto(cart);
-  }
-
-  async findAll(): Promise<CartDto[]> {
-    const carts = await this.prisma.cart.findMany({
-      include: {
-        items: {
-          include: { bike: true },
-        },
-      },
-    });
-
-    return carts.map(cart => this.mapToDto(cart));
   }
 
   async findOne(id: number): Promise<CartDto> {
     const cart = await this.prisma.cart.findUnique({
       where: { id },
-      include: {
-        items: {
-          include: { bike: true },
-        },
-      },
-    });
+      include: { items: true },
+    }) as CartWithItems;
 
     if (!cart) {
       throw new NotFoundException(`Cart with ID ${id} not found`);
@@ -51,35 +34,13 @@ export class CartsService {
     return this.mapToDto(cart);
   }
 
-  async remove(id: number): Promise<CartDto> {
-    const cart = await this.prisma.cart.delete({
-      where: { id },
-      include: {
-        items: {
-          include: { bike: true }, 
-        },
-      },
-    });
-
-    return this.mapToDto(cart);
-  }
-
-  private mapToDto(cart: any): CartDto {
+  private mapToDto(cart: CartWithItems): CartDto {
     return {
       id: cart.id,
       userId: cart.userId,
+      items: cart.items,
       createdAt: cart.createdAt,
       updatedAt: cart.updatedAt,
-      items: cart.items.map(item => ({
-        id: item.id,
-        cartId: item.cartId,
-        bikeId: item.bikeId,
-        quantity: item.quantity,
-        hours: item.hours,
-        bike: item.bike,
-        createdAt: item.createdAt,
-        updatedAt: item.updatedAt,
-      })),
     };
   }
 }

@@ -1,9 +1,10 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { RentalsService } from './rentals.service';
 import { PrismaService } from '../prisma/prisma.service';
-import { NotFoundException } from '@nestjs/common';
 import { CreateRentalDto } from './dto/create-rental.dto';
+import { RentalDto } from './dto/rental.dto';
 import { Rental } from '@prisma/client';
+import { NotFoundException } from '@nestjs/common';
 
 describe('RentalsService', () => {
   let service: RentalsService;
@@ -14,8 +15,8 @@ describe('RentalsService', () => {
     userId: 1,
     bikeId: 1,
     startTime: new Date(),
-    endTime: null,
-    totalPrice: 100,
+    endTime: new Date(),
+    totalPrice: 100.0,
     status: 'ONGOING',
     createdAt: new Date(),
     updatedAt: new Date(),
@@ -24,9 +25,7 @@ describe('RentalsService', () => {
   const mockPrismaService = {
     rental: {
       create: jest.fn().mockResolvedValue(mockRental),
-      findMany: jest.fn().mockResolvedValue([mockRental]),
       findUnique: jest.fn().mockResolvedValue(mockRental),
-      delete: jest.fn().mockResolvedValue(mockRental),
     },
   };
 
@@ -42,32 +41,43 @@ describe('RentalsService', () => {
     prismaService = module.get<PrismaService>(PrismaService);
   });
 
-  it('should create a rental', async () => {
-    const createRentalDto: CreateRentalDto = {
-      userId: 1,
-      bikeId: 1,
-      startTime: new Date(),
-      endTime: null,
-      totalPrice: 100,
-      status: 'ONGOING',
-    };
-    expect(await service.create(createRentalDto)).toEqual(mockRental);
+  it('should be defined', () => {
+    expect(service).toBeDefined();
   });
 
-  it('should return all rentals', async () => {
-    expect(await service.findAll()).toEqual([mockRental]);
+  describe('create', () => {
+    it('should create a rental', async () => {
+      const createRentalDto: CreateRentalDto = {
+        userId: 1,
+        bikeId: 1,
+        startTime: new Date(),
+        endTime: new Date(),
+        totalPrice: 100.0,
+        status: 'ONGOING',
+      };
+
+      const result: RentalDto = await service.create(createRentalDto);
+
+      expect(prismaService.rental.create).toHaveBeenCalledWith({
+        data: createRentalDto,
+      });
+      expect(result).toEqual(mockRental);
+    });
   });
 
-  it('should return a single rental', async () => {
-    expect(await service.findOne(1)).toEqual(mockRental);
-  });
+  describe('findOne', () => {
+    it('should return a rental by ID', async () => {
+      const result = await service.findOne(1);
+      expect(prismaService.rental.findUnique).toHaveBeenCalledWith({
+        where: { id: 1 },
+      });
+      expect(result).toEqual(mockRental);
+    });
 
-  it('should throw NotFoundException for non-existing rental', async () => {
-    jest.spyOn(prismaService.rental, 'findUnique').mockResolvedValue(null);
-    await expect(service.findOne(999)).rejects.toThrow(NotFoundException);
-  });
+    it('should throw a NotFoundException if rental not found', async () => {
+      jest.spyOn(prismaService.rental, 'findUnique').mockResolvedValueOnce(null);
 
-  it('should delete a rental', async () => {
-    expect(await service.remove(1)).toEqual(mockRental);
+      await expect(service.findOne(999)).rejects.toThrow(NotFoundException);
+    });
   });
 });

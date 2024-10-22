@@ -5,22 +5,35 @@ import { UpdateUserDto } from './dto/update-user.dto';
 import { User } from '@prisma/client';
 
 @Injectable()
-export class UserService {
+export class UsersService {
   constructor(private readonly prisma: PrismaService) {}
 
   async create(createUserDto: CreateUserDto): Promise<User> {
     return this.prisma.user.create({
-      data: createUserDto,
+      data: {
+        ...createUserDto,
+      },
     });
   }
 
   async findAll(): Promise<User[]> {
-    return this.prisma.user.findMany();
+    return this.prisma.user.findMany({
+      include: {
+        rentals: true,
+        cart: true,
+        reservations: true,
+      },
+    });
   }
 
   async findOne(id: number): Promise<User> {
     const user = await this.prisma.user.findUnique({
       where: { id },
+      include: {
+        rentals: true,
+        cart: true,
+        reservations: true,
+      },
     });
     if (!user) {
       throw new NotFoundException(`User with ID ${id} not found`);
@@ -29,17 +42,21 @@ export class UserService {
   }
 
   async update(id: number, updateUserDto: UpdateUserDto): Promise<User> {
-    const user = await this.findOne(id);
+    const user = await this.prisma.user.findUnique({ where: { id } });
+    if (!user) {
+      throw new NotFoundException(`User with ID ${id} not found`);
+    }
     return this.prisma.user.update({
-      where: { id: user.id },
-      data: updateUserDto,
+      where: { id },
+      data: { ...updateUserDto },
     });
   }
 
   async remove(id: number): Promise<User> {
-    const user = await this.findOne(id);
-    return this.prisma.user.delete({
-      where: { id: user.id },
-    });
+    const user = await this.prisma.user.findUnique({ where: { id } });
+    if (!user) {
+      throw new NotFoundException(`User with ID ${id} not found`);
+    }
+    return this.prisma.user.delete({ where: { id } });
   }
 }

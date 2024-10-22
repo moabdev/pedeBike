@@ -1,31 +1,37 @@
-import { ApiProperty } from '@nestjs/swagger';
-import { RentalStatus, Rental as PrismaRental } from '@prisma/client';
+import { IsInt, IsNotEmpty, IsDate, IsOptional, IsEnum } from 'class-validator';
+import { RentalStatus } from '@prisma/client'; // Importando o enum RentalStatus
 
-export class RentalDto implements PrismaRental {
-  @ApiProperty()
+export class RentalDto {
+  @IsInt()
   id: number;
 
-  @ApiProperty()
+  @IsInt()
+  @IsNotEmpty()
   userId: number;
 
-  @ApiProperty()
+  @IsInt()
+  @IsNotEmpty()
   bikeId: number;
 
-  @ApiProperty()
+  @IsDate()
+  @IsNotEmpty()
   startTime: Date;
 
-  @ApiProperty()
-  endTime: Date;
+  @IsDate()
+  @IsOptional()
+  endTime?: Date;
 
-  @ApiProperty()
+  @IsInt()
   totalPrice: number;
 
-  @ApiProperty()
+  @IsEnum(RentalStatus)
   status: RentalStatus;
 
-  @ApiProperty()
+  @IsDate()
   createdAt: Date;
 
-  @ApiProperty()
+  @IsDate()
   updatedAt: Date;
+
+  // Aqui você pode incluir outros relacionamentos se necessário
 }

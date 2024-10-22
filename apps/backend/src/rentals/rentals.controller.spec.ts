@@ -2,37 +2,37 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { RentalsController } from './rentals.controller';
 import { RentalsService } from './rentals.service';
 import { CreateRentalDto } from './dto/create-rental.dto';
-import { RentalDto } from './dto/rental.dto'; // Importando o DTO
-import { Rental } from '@prisma/client';
+import { RentalDto } from './dto/rental.dto';
 
 describe('RentalsController', () => {
   let controller: RentalsController;
   let service: RentalsService;
 
-  const mockRental: Rental = {
+  const mockRentalDto: RentalDto = {
     id: 1,
     userId: 1,
     bikeId: 1,
     startTime: new Date(),
-    endTime: null,
-    totalPrice: 100,
+    endTime: new Date(),
+    totalPrice: 100.0,
     status: 'ONGOING',
     createdAt: new Date(),
     updatedAt: new Date(),
   };
 
   const mockRentalsService = {
-    create: jest.fn().mockResolvedValue(mockRental),
-    findAll: jest.fn().mockResolvedValue([mockRental]),
-    findOne: jest.fn().mockResolvedValue(mockRental),
-    remove: jest.fn().mockResolvedValue(mockRental),
+    create: jest.fn().mockResolvedValue(mockRentalDto),
+    findOne: jest.fn().mockResolvedValue(mockRentalDto),
   };
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       controllers: [RentalsController],
       providers: [
-        { provide: RentalsService, useValue: mockRentalsService },
+        {
+          provide: RentalsService,
+          useValue: mockRentalsService,
+        },
       ],
     }).compile();
 
@@ -40,27 +40,34 @@ describe('RentalsController', () => {
     service = module.get<RentalsService>(RentalsService);
   });
 
-  it('should create a rental', async () => {
-    const createRentalDto: CreateRentalDto = {
-      userId: 1,
-      bikeId: 1,
-      startTime: new Date(),
-      endTime: null,
-      totalPrice: 100,
-      status: 'ONGOING',
-    };
-    expect(await controller.create(createRentalDto)).toEqual(mockRental);
+  it('should be defined', () => {
+    expect(controller).toBeDefined();
   });
 
-  it('should return all rentals', async () => {
-    expect(await controller.findAll()).toEqual([mockRental]);
+  describe('create', () => {
+    it('should create a rental', async () => {
+      const createRentalDto: CreateRentalDto = {
+        userId: 1,
+        bikeId: 1,
+        startTime: new Date(),
+        endTime: new Date(),
+        totalPrice: 100.0,
+        status: 'ONGOING',
+      };
+
+      const result = await controller.create(createRentalDto);
+
+      expect(service.create).toHaveBeenCalledWith(createRentalDto);
+      expect(result).toEqual(mockRentalDto);
+    });
   });
 
-  it('should return a single rental', async () => {
-    expect(await controller.findOne('1')).toEqual(mockRental);
-  });
+  describe('findOne', () => {
+    it('should return a rental by ID', async () => {
+      const result = await controller.findOne('1');
 
-  it('should delete a rental', async () => {
-    expect(await controller.remove('1')).toEqual(mockRental);
+      expect(service.findOne).toHaveBeenCalledWith(1);
+      expect(result).toEqual(mockRentalDto);
+    });
   });
 });

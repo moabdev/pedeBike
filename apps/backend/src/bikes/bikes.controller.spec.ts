@@ -1,45 +1,49 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { BikesController } from './bikes.controller';
-import { BikesService } from './bikes.service';
+import { BikeController } from './bikes.controller';
+import { BikeService } from './bikes.service';
 import { CreateBikeDto } from './dto/create-bike.dto';
-import { Bike } from '@prisma/client';
+import { UpdateBikeDto } from './dto/update-bike.dto';
+import { BikeDto } from './dto/bike.dto';
+import { NotFoundException } from '@nestjs/common';
 
-describe('BikesController', () => {
-  let controller: BikesController;
-  let service: BikesService;
+describe('BikeController', () => {
+  let controller: BikeController;
+  let service: BikeService;
 
-  const mockBike: Bike = {
+  const mockBike: BikeDto = {
     id: 1,
     model: 'Mountain Bike',
     location: 'Park',
     type: 'MOUNTAIN',
     condition: 'NEW',
-    pricePerHour: 15.5,
-    stock: 10,
+    pricePerHour: 10.0,
+    stock: 5,
     isAvailable: true,
     createdAt: new Date(),
     updatedAt: new Date(),
   };
 
+  const mockBikeService = {
+    create: jest.fn().mockResolvedValue(mockBike),
+    findAll: jest.fn().mockResolvedValue([mockBike]),
+    findOne: jest.fn().mockResolvedValue(mockBike),
+    update: jest.fn().mockResolvedValue(mockBike),
+    remove: jest.fn().mockResolvedValue(mockBike),
+  };
+
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      controllers: [BikesController],
+      controllers: [BikeController],
       providers: [
         {
-          provide: BikesService,
-          useValue: {
-            create: jest.fn().mockResolvedValue(mockBike),
-            findAll: jest.fn().mockResolvedValue([mockBike]),
-            findOne: jest.fn().mockResolvedValue(mockBike),
-            update: jest.fn().mockResolvedValue(mockBike),
-            remove: jest.fn().mockResolvedValue(mockBike),
-          },
+          provide: BikeService,
+          useValue: mockBikeService,
         },
       ],
     }).compile();
 
-    controller = module.get<BikesController>(BikesController);
-    service = module.get<BikesService>(BikesService);
+    controller = module.get<BikeController>(BikeController);
+    service = module.get<BikeService>(BikeService);
   });
 
   it('should be defined', () => {
@@ -47,53 +51,65 @@ describe('BikesController', () => {
   });
 
   describe('create', () => {
-    it('should create a bike', async () => {
+    it('should create a new bike', async () => {
       const createBikeDto: CreateBikeDto = {
         model: 'Mountain Bike',
         location: 'Park',
         type: 'MOUNTAIN',
         condition: 'NEW',
-        pricePerHour: 15.5,
-        stock: 10,
+        pricePerHour: 10.0,
+        stock: 5,
         isAvailable: true,
       };
-      expect(await controller.create(createBikeDto)).toEqual(mockBike);
+
+      const result = await controller.create(createBikeDto);
+
       expect(service.create).toHaveBeenCalledWith(createBikeDto);
+      expect(result).toEqual(mockBike);
     });
   });
 
   describe('findAll', () => {
     it('should return an array of bikes', async () => {
-      const bikes = await controller.findAll();
-      expect(bikes).toEqual([mockBike]);
+      const result = await controller.findAll();
+
       expect(service.findAll).toHaveBeenCalled();
+      expect(result).toEqual([mockBike]);
     });
   });
 
   describe('findOne', () => {
-    it('should return a bike', async () => {
-      const bike = await controller.findOne('1');
-      expect(bike).toEqual(mockBike);
+    it('should return a single bike by ID', async () => {
+      const result = await controller.findOne('1');
+
       expect(service.findOne).toHaveBeenCalledWith(1);
+      expect(result).toEqual(mockBike);
+    });
+
+    it('should throw a 404 error if bike is not found', async () => {
+      jest.spyOn(service, 'findOne').mockRejectedValueOnce(new NotFoundException());
+
+      await expect(controller.findOne('999')).rejects.toThrow(NotFoundException);
     });
   });
 
   describe('update', () => {
-    it('should update a bike', async () => {
-      const updateBikeDto: Partial<CreateBikeDto> = {
-        model: 'Updated Bike',
-      };
-      const bike = await controller.update('1', updateBikeDto);
-      expect(bike).toEqual(mockBike);
+    it('should update a bike by ID', async () => {
+      const updateBikeDto: UpdateBikeDto = { pricePerHour: 15.0 };
+
+      const result = await controller.update('1', updateBikeDto);
+
       expect(service.update).toHaveBeenCalledWith(1, updateBikeDto);
+      expect(result).toEqual(mockBike);
     });
   });
 
   describe('remove', () => {
-    it('should remove a bike', async () => {
-      const bike = await controller.remove('1');
-      expect(bike).toEqual(mockBike);
+    it('should remove a bike by ID', async () => {
+      const result = await controller.remove('1');
+
       expect(service.remove).toHaveBeenCalledWith(1);
+      expect(result).toEqual(mockBike);
     });
   });
 });

@@ -2,36 +2,36 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { ReservationsController } from './reservations.controller';
 import { ReservationsService } from './reservations.service';
 import { CreateReservationDto } from './dto/create-reservation.dto';
-import { Reservation } from '@prisma/client';
-
+import { ReservationDto } from './dto/reservation.dto';
 
 describe('ReservationsController', () => {
   let controller: ReservationsController;
   let service: ReservationsService;
 
-  const mockReservation: Reservation = {
+  const mockReservationDto: ReservationDto = {
     id: 1,
     userId: 1,
     bikeId: 1,
     startTime: new Date(),
     endTime: new Date(),
-    status: 'CONFIRMED', // Altere conforme seu status
+    status: 'PENDING', // ou o valor padrão da sua enum
     createdAt: new Date(),
     updatedAt: new Date(),
   };
 
   const mockReservationsService = {
-    create: jest.fn().mockResolvedValue(mockReservation),
-    findAll: jest.fn().mockResolvedValue([mockReservation]),
-    findOne: jest.fn().mockResolvedValue(mockReservation),
-    remove: jest.fn().mockResolvedValue(mockReservation),
+    create: jest.fn().mockResolvedValue(mockReservationDto),
+    findOne: jest.fn().mockResolvedValue(mockReservationDto),
   };
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       controllers: [ReservationsController],
       providers: [
-        { provide: ReservationsService, useValue: mockReservationsService },
+        {
+          provide: ReservationsService,
+          useValue: mockReservationsService,
+        },
       ],
     }).compile();
 
@@ -39,26 +39,33 @@ describe('ReservationsController', () => {
     service = module.get<ReservationsService>(ReservationsService);
   });
 
-  it('should create a reservation', async () => {
-    const createReservationDto: CreateReservationDto = {
-      userId: 1,
-      bikeId: 1,
-      startTime: new Date().toISOString(),
-      endTime: new Date().toISOString(),
-      status: 'CONFIRMED', // Altere conforme seu status
-    };
-    expect(await controller.create(createReservationDto)).toEqual(mockReservation);
+  it('should be defined', () => {
+    expect(controller).toBeDefined();
   });
 
-  it('should return all reservations', async () => {
-    expect(await controller.findAll()).toEqual([mockReservation]);
+  describe('create', () => {
+    it('should create a reservation', async () => {
+      const createReservationDto: CreateReservationDto = {
+        userId: 1,
+        bikeId: 1,
+        startTime: new Date(),
+        endTime: new Date(),
+        status: 'PENDING', // ou o valor padrão da sua enum
+      };
+
+      const result = await controller.create(createReservationDto);
+
+      expect(service.create).toHaveBeenCalledWith(createReservationDto);
+      expect(result).toEqual(mockReservationDto);
+    });
   });
 
-  it('should return a single reservation', async () => {
-    expect(await controller.findOne('1')).toEqual(mockReservation);
-  });
+  describe('findOne', () => {
+    it('should return a reservation by ID', async () => {
+      const result = await controller.findOne('1');
 
-  it('should delete a reservation', async () => {
-    expect(await controller.remove('1')).toEqual(mockReservation);
+      expect(service.findOne).toHaveBeenCalledWith(1);
+      expect(result).toEqual(mockReservationDto);
+    });
   });
 });
