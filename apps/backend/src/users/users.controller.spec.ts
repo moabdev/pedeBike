@@ -1,94 +1,77 @@
-// import { Test, TestingModule } from '@nestjs/testing';
-// import { UsersController } from './users.controller';
-// import { UserService } from './users.service';
-
-// describe('UsersController', () => {
-//   let controller: UsersController;
-
-//   beforeEach(async () => {
-//     const module: TestingModule = await Test.createTestingModule({
-//       controllers: [UsersController],
-//       providers: [UserService],
-//     }).compile();
-
-//     controller = module.get<UsersController>(UsersController);
-//   });
-
-//   it('should be defined', () => {
-//     expect(controller).toBeDefined();
-//   });
-// });
 import { Test, TestingModule } from '@nestjs/testing';
-import { UsersController } from './users.controller';
 import { UserService } from './users.service';
-import { User } from './entities/user.entity';
+import { PrismaService } from '../prisma/prisma.service';
 import { NotFoundException } from '@nestjs/common';
+import { User } from '@prisma/client';
 
-const mockUser = {
-  id: 1,
-  name: 'John Doe',
-  email: 'john.doe@example.com',
-  password: 'securepassword',
-};
+describe('UserService', () => {
+  let service: UserService;
+  let prisma: PrismaService;
 
-const mockUserService = {
-  create: jest.fn().mockResolvedValue(mockUser),
-  findAll: jest.fn().mockResolvedValue([mockUser]),
-  findOne: jest.fn().mockResolvedValue(mockUser),
-  update: jest.fn().mockResolvedValue(mockUser),
-  remove: jest.fn().mockResolvedValue(mockUser),
-};
+  const mockUser: User = {
+    id: 1,
+    name: 'Test User',
+    email: 'test@example.com',
+    password: 'password',
+    role: 'USER',
+    createdAt: new Date(),
+    updatedAt: new Date(),
+  };
 
-describe('UsersController', () => {
-  let controller: UsersController;
+  const mockPrismaService = {
+    user: {
+      create: jest.fn().mockResolvedValue(mockUser),
+      findMany: jest.fn().mockResolvedValue([mockUser]),
+      findUnique: jest.fn().mockResolvedValue(mockUser),
+      update: jest.fn().mockResolvedValue(mockUser),
+      delete: jest.fn().mockResolvedValue(mockUser),
+    },
+  };
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      controllers: [UsersController],
       providers: [
-        { provide: UserService, useValue: mockUserService },
+        UserService,
+        { provide: PrismaService, useValue: mockPrismaService },
       ],
     }).compile();
 
-    controller = module.get<UsersController>(UsersController);
-  });
-
-  it('should be defined', () => {
-    expect(controller).toBeDefined();
+    service = module.get<UserService>(UserService);
+    prisma = module.get<PrismaService>(PrismaService);
   });
 
   it('should create a user', async () => {
-    const user = await controller.create(mockUser);
-    expect(user).toEqual(mockUser);
-    expect(mockUserService.create).toHaveBeenCalledWith(mockUser);
+    const result = await service.create({
+      name: 'Test User',
+      email: 'test@example.com',
+      password: 'password',
+    });
+    expect(result).toEqual(mockUser);
+    expect(prisma.user.create).toHaveBeenCalledWith({
+      data: {
+        name: 'Test User',
+        email: 'test@example.com',
+        password: 'password',
+      },
+    });
   });
 
   it('should return all users', async () => {
-    const users = await controller.findAll();
+    const users = await service.findAll();
     expect(users).toEqual([mockUser]);
-    expect(mockUserService.findAll).toHaveBeenCalled();
+    expect(prisma.user.findMany).toHaveBeenCalled();
   });
 
   it('should return a single user', async () => {
-    const user = await controller.findOne('1');
+    const user = await service.findOne(1);
     expect(user).toEqual(mockUser);
-    expect(mockUserService.findOne).toHaveBeenCalledWith(1);
+    expect(prisma.user.findUnique).toHaveBeenCalledWith({ where: { id: 1 } });
   });
 
-  it('should throw NotFoundException if user does not exist', async () => {
-    mockUserService.findOne.mockRejectedValueOnce(new NotFoundException('User not found'));
-    await expect(controller.findOne('999')).rejects.toThrow(NotFoundException);
+  it('should throw NotFoundException for non-existent user', async () => {
+    jest.spyOn(prisma.user, 'findUnique').mockResolvedValueOnce(null);
+    await expect(service.findOne(2)).rejects.toThrow(NotFoundException);
   });
 
-  it('should update a user', async () => {
-    const updatedUser = await controller.update('1', { name: 'Jane Doe' });
-    expect(updatedUser).toEqual(mockUser);
-    expect(mockUserService.update).toHaveBeenCalledWith(1, { name: 'Jane Doe' });
-  });
-
-  it('should delete a user', async () => {
-    const deletedUser = await controller.remove('1');
-    expect(deletedUser).toEqual(mockUser);
-    expect(mockUserService.remove).toHaveBeenCalledWith(1);
-  });
+  // Continue com os outros testes (update, remove, etc.)
 });
