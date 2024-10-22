@@ -1,4 +1,13 @@
-import { Controller, Get, Post, Body, Param, Delete, Put } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Param,
+  Delete,
+  Put,
+  NotFoundException,
+} from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
@@ -12,7 +21,11 @@ export class UsersController {
 
   @Post()
   @ApiOperation({ summary: 'Create a new user' })
-  @ApiResponse({ status: 201, description: 'User created successfully.', type: UserDto })
+  @ApiResponse({
+    status: 201,
+    description: 'User created successfully.',
+    type: UserDto,
+  })
   @ApiResponse({ status: 400, description: 'Invalid request.' })
   async create(@Body() createUserDto: CreateUserDto): Promise<UserDto> {
     const user = await this.usersService.create(createUserDto);
@@ -21,10 +34,14 @@ export class UsersController {
 
   @Get()
   @ApiOperation({ summary: 'Get all users' })
-  @ApiResponse({ status: 200, description: 'List of users returned.', type: [UserDto] })
+  @ApiResponse({
+    status: 200,
+    description: 'List of users returned.',
+    type: [UserDto],
+  })
   async findAll(): Promise<UserDto[]> {
     const users = await this.usersService.findAll();
-    return users.map(user => this.mapToDto(user));
+    return users.map((user) => this.mapToDto(user));
   }
 
   @Get(':id')
@@ -33,21 +50,35 @@ export class UsersController {
   @ApiResponse({ status: 404, description: 'User not found.' })
   async findOne(@Param('id') id: string): Promise<UserDto> {
     const user = await this.usersService.findOne(Number(id));
+    if (!user) {
+      throw new NotFoundException(`User with ID ${id} not found`);
+    }
     return this.mapToDto(user);
   }
 
   @Put(':id')
   @ApiOperation({ summary: 'Update a user by ID' })
-  @ApiResponse({ status: 200, description: 'User updated successfully.', type: UserDto })
+  @ApiResponse({
+    status: 200,
+    description: 'User updated successfully.',
+    type: UserDto,
+  })
   @ApiResponse({ status: 404, description: 'User not found.' })
-  async update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto): Promise<UserDto> {
+  async update(
+    @Param('id') id: string,
+    @Body() updateUserDto: UpdateUserDto,
+  ): Promise<UserDto> {
     const user = await this.usersService.update(Number(id), updateUserDto);
     return this.mapToDto(user);
   }
 
   @Delete(':id')
   @ApiOperation({ summary: 'Remove a user by ID' })
-  @ApiResponse({ status: 200, description: 'User removed successfully.', type: UserDto })
+  @ApiResponse({
+    status: 200,
+    description: 'User removed successfully.',
+    type: UserDto,
+  })
   @ApiResponse({ status: 404, description: 'User not found.' })
   async remove(@Param('id') id: string): Promise<UserDto> {
     const user = await this.usersService.remove(Number(id));
@@ -64,7 +95,8 @@ export class UsersController {
       updatedAt: user.updatedAt,
       rentalIds: user.rentals?.map((rental) => rental.id) || [],
       cartId: user.cart?.id || null,
-      reservationIds: user.reservations?.map((reservation) => reservation.id) || [],
+      reservationIds:
+        user.reservations?.map((reservation) => reservation.id) || [],
     };
   }
 }

@@ -69,7 +69,7 @@ describe('CartItemsService', () => {
   describe('findOne', () => {
     it('should return a single cart item by ID', async () => {
       const result = await service.findOne(1);
-
+  
       expect(prismaService.cartItem.findUnique).toHaveBeenCalledWith({
         where: { id: 1 },
       });
@@ -83,12 +83,15 @@ describe('CartItemsService', () => {
         updatedAt: expect.any(Date),
       });
     });
-
+  
     it('should throw a NotFoundException if cart item is not found', async () => {
-      jest.spyOn(prismaService.cartItem, 'findUnique').mockResolvedValueOnce(null);
-
+      // Simulando que o método findUnique retornará null
+      prismaService.cartItem.findUnique = jest.fn().mockResolvedValue(null);
+  
+      // Agora esperamos que o serviço lance uma NotFoundException
       await expect(service.findOne(999)).rejects.toThrow(NotFoundException);
       await expect(service.findOne(999)).rejects.toThrow('Cart item with ID 999 not found');
     });
   });
+  
 });

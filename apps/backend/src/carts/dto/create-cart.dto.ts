@@ -1,9 +1,6 @@
-import { IsInt, IsNotEmpty } from 'class-validator';
-import { ApiProperty } from '@nestjs/swagger';
+import { IsNumber } from 'class-validator';
 
 export class CreateCartDto {
-  @IsInt()
-  @IsNotEmpty()
-  @ApiProperty({ description: 'ID of the user associated with the cart.' })
+  @IsNumber()
   userId: number;
 }
