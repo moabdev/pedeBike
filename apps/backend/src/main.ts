@@ -5,7 +5,7 @@ import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
-
+w
   // Configuração do Swagger
   const config = new DocumentBuilder()
     .setTitle('Bike Rental API')

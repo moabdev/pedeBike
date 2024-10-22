@@ -4,8 +4,7 @@ import { ReservationsController } from './reservations.controller';
 import { PrismaService } from 'src/prisma/prisma.service';
 
 @Module({
-  imports: [PrismaService ],
   controllers: [ReservationsController],
-  providers: [ReservationsService],
+  providers: [ReservationsService, PrismaService],
 })
 export class ReservationsModule {}
